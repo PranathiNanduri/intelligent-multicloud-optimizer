@@ -1,21 +1,26 @@
-from fastapi import FastAPI
 import os
-import time
-from prometheus_fastapi_instrumentator import Instrumentator
-app = FastAPI()
-# Register Prometheus instrumentation BEFORE the app starts
-Instrumentator().instrument(app).expose(app)  # exposes /metrics
-@app.get("/hello")
-def hello():
-    return {"msg": "imo-api", "pod": os.getenv("HOSTNAME", ""), "ts": time.time()}
-@app.get("/healthz")
-def healthz():
-    return {"status": "ok"}
+import sys
+import traceback
+import uvicorn
+
+def run():
+    port_str = os.getenv("PORT", "8080")
+    try:
+        port = int(port_str)
+    except ValueError:
+        print(f"Invalid PORT value: {port_str!r}. Falling back to 8080.", file=sys.stderr)
+        port = 8080
+
+    try:
+        uvicorn.run(
+            app,                    # your FastAPI app variable
+            host="0.0.0.0",
+            port=port,
+            reload=False,
+        )
+    except Exception:
+        traceback.print_exc()
+        sys.exit(1)
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=int(os.getenv("PORT", "8080")),
-        reload=False,
-    )
+    run()
