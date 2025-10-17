@@ -4,14 +4,11 @@ import time
 from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
-
 # Register Prometheus instrumentation BEFORE the app starts
 Instrumentator().instrument(app).expose(app)  # exposes /metrics
-
 @app.get("/hello")
 def hello():
     return {"msg": "imo-api", "pod": os.getenv("HOSTNAME", ""), "ts": time.time()}
-
 @app.get("/healthz")
 def healthz():
     return {"status": "ok"}
